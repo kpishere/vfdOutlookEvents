@@ -11,9 +11,31 @@ DEFINE_FSTR(pwdCmd,"pwd ");
 DEFINE_FSTR(secretCmd,"secret ");
 DEFINE_FSTR(hostCmd,"host ");
 DEFINE_FSTR(codeCmd,"code ");
+DEFINE_FSTR(listCmd,"list");
+DEFINE_FSTR(restartCmd,"restart");
 
 SerialReadLine serialReadline;
 NtpClient *ntp;
+
+// Will be called when WiFi station network scan was completed
+void listNetworks(bool succeeded, BssList& list)
+{
+    if(!succeeded) {
+        Serial.println(_F("Failed to scan networks"));
+        return;
+    }
+    
+    for(unsigned i = 0; i < list.count(); i++) {
+        Serial.print(_F("\tWiFi: "));
+        Serial.print(list[i].ssid);
+        Serial.print(", ");
+        Serial.print(list[i].getAuthorizationMethodName());
+        if(list[i].hidden) {
+            Serial.print(_F(" (hidden)"));
+        }
+        Serial.println();
+    }
+}
 
 void handleCommand(const String& command)
 {
@@ -32,11 +54,15 @@ void handleCommand(const String& command)
     } else if(command.startsWith(codeCmd)) {
         ActiveConfig.code = String(command.substring(codeCmd.length()));
         saveConfig(ActiveConfig);
+    } else if(command.startsWith(listCmd)) {
+        WifiStation.startScan(listNetworks);
+    } else if(command.startsWith(restartCmd)) {
+        System.restart();
     } else {
         Serial.print("Free size (handleCommand): ");
         Serial.println(system_get_free_heap_size());
 
-        Serial.printf(_F("Commands are 'ssid <ssid>', 'pwd <pwd>', 'secret <secret>', 'host <host>', 'code <code>'\r\n"), command.c_str());
+        Serial.printf(_F("Commands are 'ssid <ssid>', 'pwd <pwd>', 'secret <secret>', 'host <host>', 'code <code>', 'list', 'restart'\r\n"), command.c_str());
     }
 }
 
@@ -52,6 +78,19 @@ void gotIP(IpAddress ip, IpAddress netmask, IpAddress gateway)
     
     vfdDisplay::show(String(_F("Hostname ")) + ActiveConfig.host);
 }
+
+// Will be called when WiFi station was disconnected
+void connectFail(const String& ssid, MacAddress bssid, WifiDisconnectReason reason)
+{
+    // The different reason codes can be found in user_interface.h. in your SDK.
+    Serial.print(_F("Disconnected from \""));
+    Serial.print(ssid);
+    Serial.print(_F("\", reason: "));
+    Serial.println(WifiEvents.getDisconnectReasonDesc(reason));
+    
+    System.restart(500);
+}
+
 
 void init()
 {
@@ -84,4 +123,15 @@ void init()
     
     // Run our method when station was connected to AP
     WifiEvents.onStationGotIP(gotIP);
+    
+    // Optional: Print details of any incoming probe requests
+    WifiEvents.onAccessPointProbeReqRecved([](int rssi, MacAddress mac) {
+        Serial.print(_F("Probe request: RSSI = "));
+        Serial.print(rssi);
+        Serial.print(_F(", mac = "));
+        Serial.println(mac);
+    });
+
+    // Set callback that should be triggered if we are disconnected or connection attempt failed
+    WifiEvents.onStationDisconnect(connectFail);
 }

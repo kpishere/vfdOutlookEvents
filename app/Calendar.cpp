@@ -12,6 +12,7 @@ const int pollTime_ms =  1 * 59 * 1000; /* min * s/min * ms/s */;
 const int pollTime_qry =  14; /* queries per display refreshes */;
 int procTimer_multple = 0;
 Timer procTimer;
+Timer deadTimer;
 
 HttpClient httpClient;
 
@@ -105,7 +106,9 @@ int getTokenRefreshComplete(HttpConnection& connection, bool success) {
     procTimer.initializeMs( 120 * 1000, Calendar::getCalendar).startOnce();
     return 0;
 }
-
+void noActivityRestart() {
+    System.restart();
+}
 void displayUpdate()
 {
     DynamicJsonDocument doc(CalendarJsonBufferSize);
@@ -124,20 +127,29 @@ void displayUpdate()
         JsonArray valueArray = doc[_F("value")];
 
         Serial.printf(_F("Calendar items : %d\n"),valueArray.size() );
+        
         if(valueArray.size() >0) {
             JsonObject location = valueArray[0][_F("location")];
-            JsonObject start = valueArray[0][_F("start")];
-            DateTime dt_start = parseISO8602( String(start[_F("dateTime")].as<const char*>()) ) ;
-            Serial.printf(_F("start %s -> %s\n"),start[_F("dateTime")].as<const char*>()
-                          ,   (const char *)dt_start.toISO8601().c_str() );
-                        
-            vfdDisplay::showNextEvent( (dt_start.toUnixTime() - SystemClock.now(eTZ_UTC)) / 60 , location[_F("displayName")] );
+            JsonObject start = valueArray[0][_F("start")]
+            ,   end = valueArray[0][_F("end")];
+            DateTime dt_start = parseISO8602( String(start[_F("dateTime")].as<const char*>()) )
+                   ,   dt_end = parseISO8602( String(  end[_F("dateTime")].as<const char*>()) );
+            Serial.printf(_F("start %s end %s\n")
+                          , (const char *)dt_start.toISO8601().c_str(), (const char *)dt_end.toISO8601().c_str()
+                          );
+            if(dt_end.toUnixTime() - SystemClock.now(eTZ_UTC) > 0) {
+                vfdDisplay::showNextEvent( (dt_start.toUnixTime() - SystemClock.now(eTZ_UTC)) / 60 , location[_F("displayName")] );
+            } else {
+                vfdDisplay::clear();
+            }
         } else { // Show time by default
             vfdDisplay::clear();
-            vfdDisplay::show( SystemClock.getSystemTimeString() );
+            //vfdDisplay::show( SystemClock.getSystemTimeString() );
         }
     } else {
     }
+    // update dead timer
+    procTimer.initializeMs( 3 * pollTime_ms, noActivityRestart ).startOnce();
     // Schedule poll event
     if( procTimer_multple % pollTime_qry == 0) {
         procTimer.initializeMs( pollTime_ms, Calendar::getCalendar ).startOnce();
@@ -261,7 +273,7 @@ void Calendar::getCalendarIn(int ms) {
 void Calendar::getCalendar() {
     DynamicJsonDocument doc(CalendarJsonBufferSize);
     Url url;
-    DateTime dt_start(SystemClock.now()), dt_end(SystemClock.now() + 60*60*24);
+    DateTime dt_start(SystemClock.now(eTZ_UTC)), dt_end(SystemClock.now(eTZ_UTC) + 60*60*24);
 
     /*
      
@@ -315,7 +327,7 @@ void Calendar::getCalendar() {
         
         url.Query[F("startDateTime")] = dt_start.toISO8601();
         url.Query[F("endDateTime")] = dt_end.toISO8601();
-        url.Query[F("$select")] = String(_F("Subject,location,start"));
+        url.Query[F("$select")] = String(_F("Subject,location,start,end"));
         url.Query[F("$orderby")] = String(_F("start/dateTime"));
         url.Query[F("$top")] = String(_F("2"));
         
