@@ -106,25 +106,24 @@ void onFile(HttpRequest& request, HttpResponse& response)
     
     if(file[0] == '.') { // leading period on files -- don't send
         response.code = HTTP_STATUS_FORBIDDEN;
-    } else if(file.compareTo("")==0) {
-        response.setCache(86400, true); // It's important to use cache for better performance.
+        return;
+    }
+
+    response.setCache(86400, true); // It's important to use cache for better performance.
+    if(file == "") {
         response.sendFile(_F("index.html"));
-    } else if(file.compareTo(flash_fnameJQuery)==0) {
-        response.setCache(86400, true); // It's important to use cache for better
+    } else if(file == flash_fnameJQuery) {
         response.headers[HTTP_HEADER_CONTENT_ENCODING] = _F("gzip");
         auto stream = new FlashMemoryStream(flash_jqueryjsgz);
         response.sendDataStream(stream, MIME_JS);
-    } else if(file.compareTo(flash_fnameBootStrap)==0) {
-        response.setCache(86400, true); // It's important to use cache for better
+    } else if(file == flash_fnameBootStrap) {
         response.headers[HTTP_HEADER_CONTENT_ENCODING] = _F("gzip");
         auto stream = new FlashMemoryStream(flash_bootstrapcssgz);
         response.sendDataStream(stream, MIME_CSS);
-    } else if(file.compareTo(filename_login)==0) { // This is for re-attempts at login
-        response.setCache(86400, true); // It's important to use cache for better performance.
+    } else if(file == filename_login) { // This is for re-attempts at login
         response.headers[HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN] = "*";
         response.sendFile(file);
     } else {
-        response.setCache(86400, true); // It's important to use cache for better performance.
         response.sendFile(file);
     }
 }
