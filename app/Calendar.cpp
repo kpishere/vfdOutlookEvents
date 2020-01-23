@@ -8,8 +8,8 @@ const uint16_t CalendarJsonBufferSize = 4096;
 
 void displayUpdate();
 
-const int pollTime_ms =  1 * 59 * 1000; /* min * s/min * ms/s */;
-const int pollTime_qry =  14; /* queries per display refreshes */;
+constexpr int pollTime_ms =  1 * 59 * 1000; /* min * s/min * ms/s */;
+constexpr int pollTime_qry =  14; /* queries per display refreshes */;
 int procTimer_multple = 0;
 Timer procTimer;
 Timer deadTimer;
@@ -111,7 +111,7 @@ int getTokenRefreshComplete(HttpConnection& connection, bool success) {
         }
     }
     // Schedule poll event - only called after a token refresh
-    procTimer.initializeMs( 120 * 1000, Calendar::getCalendar).startOnce();
+    procTimer.initializeMs<120 * 1000>(Calendar::getCalendar).startOnce();
     return 0;
 }
 void noActivityRestart() {
@@ -164,12 +164,13 @@ void displayUpdate()
     } else {
     }
     // update dead timer
-    procTimer.initializeMs( 3 * pollTime_ms, noActivityRestart ).startOnce();
+    procTimer.initializeMs<3 * pollTime_ms>(noActivityRestart).startOnce();
+
     // Schedule poll event
     if( procTimer_multple % pollTime_qry == 0) {
-        procTimer.initializeMs( pollTime_ms, Calendar::getCalendar ).startOnce();
+        procTimer.initializeMs<pollTime_ms>(Calendar::getCalendar).startOnce();
     } else {
-        procTimer.initializeMs( pollTime_ms, displayUpdate ).startOnce();
+        procTimer.initializeMs<pollTime_ms>(displayUpdate).startOnce();
     }
     procTimer_multple++;
 }
