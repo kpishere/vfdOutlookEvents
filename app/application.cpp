@@ -62,7 +62,14 @@ void handleCommand(const String& command)
         Serial.print(_F("Free size (handleCommand): "));
         Serial.println(system_get_free_heap_size());
 
-        Serial.printf(_F("Commands are 'ssid <ssid>', 'pwd <pwd>', 'secret <secret>', 'host <host>', 'code <code>', 'list', 'restart'\r\n"), command.c_str());
+        Serial.println(_F("Commands are: \r\n"
+        		"ssid <ssid>\r\n"
+        		"pwd <pwd>\r\n"
+        		"secret <secret>\r\n"
+        		"host <host>\r\n"
+        		"code <code>\r\n"
+        		"list\r\n"
+        		"restart"));
     }
 }
 
