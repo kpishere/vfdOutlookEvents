@@ -215,7 +215,8 @@ void Calendar::getAuthorization(String filename_login) {
     
     // Send request using our httpClient, saves response locally
     FileStream* fileStream = new FileStream;
-    if(fileStream && fileStream->open(filename_login, eFO_CreateNewAlways | eFO_ReadWrite)) {
+    assert(fileStream != nullptr);
+    if(fileStream->open(filename_login, eFO_CreateNewAlways | eFO_ReadWrite)) {
         request1->setResponseStream(fileStream); // saving response here
         httpClient.send(request1);
     }
@@ -292,7 +293,8 @@ void Calendar::getToken(boolean isRefresh) {
 
     // Send request using our httpClient, saves response locally
     FileStream* fileStream = new FileStream;
-    if(fileStream && fileStream->open( (isRefresh ? filename_update : filename_token)
+    assert(fileStream != nullptr);
+    if(fileStream->open( (isRefresh ? filename_update : filename_token)
                                       , eFO_CreateNewAlways | eFO_ReadWrite)) {
         request1->setResponseStream(fileStream); // saving response here
         httpClient.send(request1);
@@ -376,7 +378,8 @@ void Calendar::getCalendar() {
 
         // Send request using our httpClient, saves response locally
         FileStream* fileStream = new FileStream;
-        if(fileStream && fileStream->open(lastQuery_json, eFO_CreateNewAlways | eFO_ReadWrite)) {
+        assert(fileStream != nullptr);
+        if(fileStream->open(lastQuery_json, eFO_CreateNewAlways | eFO_ReadWrite)) {
             request1->setResponseStream(fileStream); // saving response here
             httpClient.send(request1);
             
