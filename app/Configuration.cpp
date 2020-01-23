@@ -3,8 +3,6 @@
 
 const uint16_t ConfigJsonBufferSize = 2048;
 
-
-const char endOfLine = '\n';
 DEFINE_FSTR_LOCAL(configFileName,".config.conf");  // leading period for files un-downloadable by webserver
 DEFINE_FSTR_LOCAL(networkName,"network");
 DEFINE_FSTR_LOCAL(ssidName,"StaSSID");

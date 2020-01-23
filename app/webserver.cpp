@@ -147,8 +147,6 @@ void onConfig(HttpRequest& request, HttpResponse& response)
 
 void onAuthorize(HttpRequest& request, HttpResponse& response)
 {
-    String respString;
-
     Calendar::getAuthorization(filename_login);
     
     sendRedirect(response, String('/') + filename_login);
@@ -165,7 +163,6 @@ void onRegister(HttpRequest& request, HttpResponse& response) {
 
 void onGetToken(HttpRequest& request, HttpResponse& response)
 {
-    String respString;
     Calendar::getToken();
     sendRedirect(response, "/");
 }
