@@ -179,6 +179,7 @@ void onCalRefresh(HttpRequest& request, HttpResponse& response)
 //mDNS using ESP8266 SDK functions
 void startmDNS()
 {
+#ifdef ENABLE_ESPCONN
     struct mdns_info* info = (struct mdns_info*)malloc(sizeof(struct mdns_info));
     info->host_name = (char *)ActiveConfig.host.c_str();
     info->ipAddr = WifiStation.getIP();
@@ -186,6 +187,7 @@ void startmDNS()
     info->server_port = serverPort;
     info->txt_data[0] = (char *)"";
     //espconn_mdns_init(info);
+#endif
 }
 
 void startWebServer()
