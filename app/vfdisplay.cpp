@@ -76,18 +76,17 @@ void vfdDisplay::init() {
 }
 
 void vfdDisplay::clear() {
-    Serial1.print((char)0x15); // Clear and reset display
-    Serial1.print((char)0x0E); // disable curser flash
+    Serial1.print('\x15'); // Clear and reset display
+    Serial1.print('\x0E'); // disable curser flash
 }
 
 void vfdDisplay::show(String val) {
-    String vfdStr(""), vfdStrAlt("");
-    char cv;
     val.toUpperCase(); // Lower case don't print with punctuation (and look like upper case)
-    for(char& c : val) {
+    String vfdStr;
+    for(char c : val) {
         // Directly printable characters only
-        if((0x20 <= c && c <= 0x60)
-           || 0x7B <= c && c <= 0x7E
+        if(('\x20' <= c && c <= '\x60')
+           || '\x7B' <= c && c <= '\x7E'
            ) {
             vfdStr += c;
         }
@@ -96,16 +95,16 @@ void vfdDisplay::show(String val) {
     // TODO: Parse HTML here for character control codes supported
     if(vfdStr.length() <= 1) return;
     
-    // Search and replace supported tokins
+    // Search and replace supported tokens
     for(int i = 1; i < vfdStr.length(); i++) {
-        cv = vfdStr[i-1];
+        char cv = vfdStr[i-1];
         switch ( vfdStr[i] ) {
             case ',':
-                if(0x20 <= cv && cv <= 0x3F)        cv += 0x60;
-                else if(0x40 <= cv && cv <= 0x5F)   cv += 0xA0;
+                if('\x20' <= cv && cv <= '\x3F')        cv += 0x60;
+                else if('\x40' <= cv && cv <= '\x5F')   cv += 0xA0;
                 break;
             case '.':
-                if(0x20 <= cv && cv <= 0x5F)        cv += 0x80;
+                if('\x20' <= cv && cv <= '\x5F')        cv += 0x80;
                 break;
         }
         vfdStr[i-1] = cv;
