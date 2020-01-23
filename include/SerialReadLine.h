@@ -9,21 +9,20 @@ typedef Delegate<void(const String& command)> CommandCallbackFunction;
 class SerialReadLine
 {
 public:
-    void begin(HardwareSerial& serial);
-    void onData(Stream& stream, char arrivedChar, unsigned short availableCharsCount);
-    
-    void onCommand(CommandCallbackFunction callback)
-    {
-        this->callback = callback;
-    }
-    
+	void begin(HardwareSerial& serial);
+	void onData(Stream& stream, char arrivedChar, unsigned short availableCharsCount);
+
+	void onCommand(CommandCallbackFunction callback)
+	{
+		this->callback = callback;
+	}
+
 private:
-    HardwareSerial* serial = nullptr;
-    unsigned charReceived = 0;
-    unsigned numCallback = 0;
-    bool useRxFlag = true;
-    CommandCallbackFunction callback = nullptr;
+	HardwareSerial* serial = nullptr;
+	unsigned charReceived = 0;
+	unsigned numCallback = 0;
+	bool useRxFlag = true;
+	CommandCallbackFunction callback = nullptr;
 };
 
 #endif /* INCLUDE_SERIALREADLINE_H_ */
-

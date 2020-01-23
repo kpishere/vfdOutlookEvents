@@ -8,18 +8,20 @@ const uint16_t CalendarJsonBufferSize = 4096;
 
 void displayUpdate();
 
-constexpr int pollTime_ms =  1 * 59 * 1000; /* min * s/min * ms/s */;
-constexpr int pollTime_qry =  14; /* queries per display refreshes */;
+constexpr int pollTime_ms = 1 * 59 * 1000; /* min * s/min * ms/s */
+;
+constexpr int pollTime_qry = 14; /* queries per display refreshes */
+;
 int procTimer_multple = 0;
 Timer procTimer;
 Timer deadTimer;
 
 HttpClient httpClient;
 
-DEFINE_FSTR_LOCAL(filename_token,"token.json");
-DEFINE_FSTR_LOCAL(filename_update,"update.json");
-DEFINE_FSTR_LOCAL(lastQuery_json,"query.json");
-DEFINE_FSTR_LOCAL(code_token,"code");
+DEFINE_FSTR_LOCAL(filename_token, "token.json");
+DEFINE_FSTR_LOCAL(filename_update, "update.json");
+DEFINE_FSTR_LOCAL(lastQuery_json, "query.json");
+DEFINE_FSTR_LOCAL(code_token, "code");
 
 DEFINE_FSTR_LOCAL(FS_hostLogin, "login.microsoftonline.com");
 DEFINE_FSTR_LOCAL(FS_hostService, "graph.microsoft.com");
@@ -27,7 +29,8 @@ DEFINE_FSTR_LOCAL(FS_hostService, "graph.microsoft.com");
 /*
  * Configure SSL features and trust
  */
-void onSslInit(Ssl::Session& session, HttpRequest& request) {
+void onSslInit(Ssl::Session& session, HttpRequest& request)
+{
 	// Microsoft IT TLS CA 4
 	if(request.uri.Host == FS_hostLogin) {
 		static const Ssl::Fingerprint::Cert::Sha1 fpCertLogin PROGMEM = {
@@ -59,259 +62,271 @@ void onSslInit(Ssl::Session& session, HttpRequest& request) {
 	}
 
 	// We're using fingerprints, so don't attempt to validate full certificate
-    session.options.verifyLater = true;
-    
-    // Explicity set as a reminder (this is the default and many servers only send 16K blocks regardless of client request)
-    session.maxBufferSize = Ssl::MaxBufferSize::K16;
+	session.options.verifyLater = true;
+
+	// Explicity set as a reminder (this is the default and many servers only send 16K blocks regardless of client request)
+	session.maxBufferSize = Ssl::MaxBufferSize::K16;
 }
 
 // 2020-01-13T14:20:00.0000000 or 2020-01-13T14:20:00Z or 2020-01-13
-DateTime parseISO8602(String datetime) {
+DateTime parseISO8602(String datetime)
+{
 	// Null-terminate all the numeric content elements
-    for(auto& c: datetime) {
-        if(c == '-' || c == 'T' || c == ':' || c == '.' || c == 'Z') {
-            c = '\0';
-        }
-    }
+	for(auto& c : datetime) {
+		if(c == '-' || c == 'T' || c == ':' || c == '.' || c == 'Z') {
+			c = '\0';
+		}
+	}
 
-    DateTime tm;
-    if(datetime.length() >= 10) {
-    	tm.Year = atoi(&datetime[0]);
-    	tm.Month = atoi(&datetime[5]);
-    	tm.Day = atoi(&datetime[8]);
+	DateTime tm;
+	if(datetime.length() >= 10) {
+		tm.Year = atoi(&datetime[0]);
+		tm.Month = atoi(&datetime[5]);
+		tm.Day = atoi(&datetime[8]);
 
 		if(datetime.length() >= 19) {
 			tm.Hour = atoi(&datetime[11]);
 			tm.Minute = atoi(&datetime[14]);
 			tm.Second = atoi(&datetime[17]);
 		}
-    } else {
-        tm.Year = 1970;
-        tm.Month = 1;
-        tm.Day = 1;
-    }
+	} else {
+		tm.Year = 1970;
+		tm.Month = 1;
+		tm.Day = 1;
+	}
 
-    return tm;
+	return tm;
 }
-void getTokenRefresh() {
-    httpClient.cleanup();
-    Calendar::getToken(true);
+
+void getTokenRefresh()
+{
+	httpClient.cleanup();
+	Calendar::getToken(true);
 }
-int getTokenRefreshComplete(HttpConnection& connection, bool success) {
-    DynamicJsonDocument doc(CalendarJsonBufferSize);
-    
-    // If update token received successfully, move it to current token file
-    if(success) {
-        if(Json::loadFromFile(doc, filename_update)) {
-            if(doc.containsKey(_F("access_token"))) {
-                doc.clear();
-                fileDelete(filename_token);
-                fileRename(filename_update, filename_token);
-            }
-        }
-    }
-    // Schedule poll event - only called after a token refresh
-    procTimer.initializeMs<120 * 1000>(Calendar::getCalendar).startOnce();
-    return 0;
+
+int getTokenRefreshComplete(HttpConnection& connection, bool success)
+{
+	DynamicJsonDocument doc(CalendarJsonBufferSize);
+
+	// If update token received successfully, move it to current token file
+	if(success) {
+		if(Json::loadFromFile(doc, filename_update)) {
+			if(doc.containsKey(_F("access_token"))) {
+				doc.clear();
+				fileDelete(filename_token);
+				fileRename(filename_update, filename_token);
+			}
+		}
+	}
+	// Schedule poll event - only called after a token refresh
+	procTimer.initializeMs<120 * 1000>(Calendar::getCalendar).startOnce();
+	return 0;
 }
-void noActivityRestart() {
-    System.restart();
+
+void noActivityRestart()
+{
+	System.restart();
 }
+
 void displayUpdate()
 {
-    DynamicJsonDocument doc(CalendarJsonBufferSize);
-    
-    // Update Display
-    if(Json::loadFromFile(doc, lastQuery_json)) {
-        JsonObject error = doc[_F("error")];
-        if(error) {
-            Serial.print(error[_F("code")].as<const char*>());
-            Serial.print(' ');
-            Serial.println(error[_F("message")].as<const char*>());
+	DynamicJsonDocument doc(CalendarJsonBufferSize);
 
-            if(error[_F("code")] == _F("InvalidAuthenticationToken")) {
-                procTimer.initializeMs(10 * 1000, getTokenRefresh).startOnce();
-                doc.clear();
-                return;
-            }
-        }
-        JsonArray valueArray = doc[_F("value")];
+	// Update Display
+	if(Json::loadFromFile(doc, lastQuery_json)) {
+		JsonObject error = doc[_F("error")];
+		if(error) {
+			Serial.print(error[_F("code")].as<const char*>());
+			Serial.print(' ');
+			Serial.println(error[_F("message")].as<const char*>());
 
-        Serial.print(_F("Calendar items : "));
-        Serial.println(valueArray.size());
-        
-        if(valueArray.size() >0) {
-        	JsonObject item = valueArray[0];
-            JsonObject location = item[_F("location")];
-            JsonObject start = item[_F("start")];
-            JsonObject end = item[_F("end")];
-            DateTime dt_start = parseISO8602(start[_F("dateTime")]);
-        	DateTime dt_end = parseISO8602(end[_F("dateTime")]);
-            Serial.print(_F("start "));
-            Serial.print(dt_start.toISO8601());
-            Serial.print(_F(" end "));
-            Serial.println(dt_end.toISO8601());
-            auto now = SystemClock.now(eTZ_UTC);
-            if(dt_end.toUnixTime() > now) {
-                vfdDisplay::showNextEvent( (dt_start.toUnixTime() - now) / SECS_PER_MIN , location[_F("displayName")] );
-            } else {
-                vfdDisplay::clear();
-            }
-        } else { // Show time by default
-            vfdDisplay::clear();
-            //vfdDisplay::show( SystemClock.getSystemTimeString() );
-        }
-    } else {
-    }
-    // update dead timer
-    procTimer.initializeMs<3 * pollTime_ms>(noActivityRestart).startOnce();
+			if(error[_F("code")] == _F("InvalidAuthenticationToken")) {
+				procTimer.initializeMs(10 * 1000, getTokenRefresh).startOnce();
+				doc.clear();
+				return;
+			}
+		}
+		JsonArray valueArray = doc[_F("value")];
 
-    // Schedule poll event
-    if( procTimer_multple % pollTime_qry == 0) {
-        procTimer.initializeMs<pollTime_ms>(Calendar::getCalendar).startOnce();
-    } else {
-        procTimer.initializeMs<pollTime_ms>(displayUpdate).startOnce();
-    }
-    procTimer_multple++;
+		Serial.print(_F("Calendar items : "));
+		Serial.println(valueArray.size());
+
+		if(valueArray.size() > 0) {
+			JsonObject item = valueArray[0];
+			JsonObject location = item[_F("location")];
+			JsonObject start = item[_F("start")];
+			JsonObject end = item[_F("end")];
+			DateTime dt_start = parseISO8602(start[_F("dateTime")]);
+			DateTime dt_end = parseISO8602(end[_F("dateTime")]);
+			Serial.print(_F("start "));
+			Serial.print(dt_start.toISO8601());
+			Serial.print(_F(" end "));
+			Serial.println(dt_end.toISO8601());
+			auto now = SystemClock.now(eTZ_UTC);
+			if(dt_end.toUnixTime() > now) {
+				vfdDisplay::showNextEvent((dt_start.toUnixTime() - now) / SECS_PER_MIN, location[_F("displayName")]);
+			} else {
+				vfdDisplay::clear();
+			}
+		} else { // Show time by default
+			vfdDisplay::clear();
+			//vfdDisplay::show( SystemClock.getSystemTimeString() );
+		}
+	} else {
+	}
+
+	// update dead timer
+	procTimer.initializeMs<3 * pollTime_ms>(noActivityRestart).startOnce();
+
+	// Schedule poll event
+	if(procTimer_multple % pollTime_qry == 0) {
+		procTimer.initializeMs<pollTime_ms>(Calendar::getCalendar).startOnce();
+	} else {
+		procTimer.initializeMs<pollTime_ms>(displayUpdate).startOnce();
+	}
+	procTimer_multple++;
 }
 
-int callDisplayUpdate(HttpConnection& connection, bool success) {
-    debug_e("calendar update");
-    
-    //    procTimer.initializeMs(10000, displayUpdate).start();
-    displayUpdate();
+int callDisplayUpdate(HttpConnection& connection, bool success)
+{
+	debug_e("calendar update");
 
-    return 0;
+	//    procTimer.initializeMs(10000, displayUpdate).start();
+	displayUpdate();
+
+	return 0;
 }
 
+void Calendar::getAuthorization(String filename_login)
+{
+	Url url;
 
+	// Configure request for User OAuth 2.0 credential access to a service
+	url.Scheme = URI_SCHEME_HTTP_SECURE;
+	url.Host = F("login.microsoftonline.com");
+	url.Path = ({
+		String s('/');
+		s += ActiveConfig.tennentId;
+		s += _F("/oauth2/v2.0/authorize");
+		std::move(s);
+	});
+	url.Query[F("scope")] = _F("offline_access openid profile calendars.read");
+	url.Query[F("response_type")] = _F("code");
+	url.Query[F("client_id")] = ActiveConfig.clientId;
+	url.Query[F("redirect_uri")] = ({
+		String s = F("https://");
+		s += ActiveConfig.host;
+		s += _F(".local/register");
+		std::move(s);
+	});
+	url.Query[F("response_mode")] = F("query");
 
-void Calendar::getAuthorization(String filename_login) {
-    Url url;
-    
-    // Configure request for User OAuth 2.0 credential access to a service
-    url.Scheme = URI_SCHEME_HTTP_SECURE;
-    url.Host = F("login.microsoftonline.com");
-    url.Path = ({
-    	String s('/');
-        s += ActiveConfig.tennentId;
-        s += _F("/oauth2/v2.0/authorize");
-        std::move(s);
-    });
-    url.Query[F("scope")] = _F("offline_access openid profile calendars.read");
-    url.Query[F("response_type")] = _F("code");
-    url.Query[F("client_id")] = ActiveConfig.clientId;
-    url.Query[F("redirect_uri")] = ({
-    		String s = F("https://");
-    		s += ActiveConfig.host;
-    		s += _F(".local/register");
-    		std::move(s);
-    });
-    url.Query[F("response_mode")] = F("query");
-    
-    HttpRequest* request1 = new HttpRequest(url.toString());
-    request1->onSslInit(onSslInit);
-    request1->setMethod(HTTP_GET);
-    
-    // Send request using our httpClient, saves response locally
-    FileStream* fileStream = new FileStream;
-    assert(fileStream != nullptr);
-    if(fileStream->open(filename_login, eFO_CreateNewAlways | eFO_ReadWrite)) {
-        request1->setResponseStream(fileStream); // saving response here
-        httpClient.send(request1);
-    }
-    vfdDisplay::clear();
-    vfdDisplay::show("Login . . .");
+	HttpRequest* request1 = new HttpRequest(url.toString());
+	request1->onSslInit(onSslInit);
+	request1->setMethod(HTTP_GET);
+
+	// Send request using our httpClient, saves response locally
+	FileStream* fileStream = new FileStream;
+	assert(fileStream != nullptr);
+	if(fileStream->open(filename_login, eFO_CreateNewAlways | eFO_ReadWrite)) {
+		request1->setResponseStream(fileStream); // saving response here
+		httpClient.send(request1);
+	}
+	vfdDisplay::clear();
+	vfdDisplay::show("Login . . .");
 }
 
 /*
  * If one could run an HTTPS service, this could be called and code value set here.
  * Alternately, use serial interface to set 'code' value.
  */
-void Calendar::onCodeSave(HttpParams& parms) {
-    //Serial.printf("\nRegister [ URL: %s ]", parms[code_token].c_str());
-    ActiveConfig.code = parms[code_token];
-    saveConfig(ActiveConfig);
+void Calendar::onCodeSave(HttpParams& parms)
+{
+	//Serial.printf("\nRegister [ URL: %s ]", parms[code_token].c_str());
+	ActiveConfig.code = parms[code_token];
+	saveConfig(ActiveConfig);
 
-    /* This would be where the app is 'connected' as tokens expire and
+	/* This would be where the app is 'connected' as tokens expire and
      we must re-use this code to update token until permissions of app are revoked.
      */
-    vfdDisplay::clear();
-    vfdDisplay::show("Connected . . .");
+	vfdDisplay::clear();
+	vfdDisplay::show("Connected . . .");
 }
 
-void Calendar::getToken(boolean isRefresh) {
-    Url url;
-    HttpParams formBody;
-    
-    /*
+void Calendar::getToken(boolean isRefresh)
+{
+	Url url;
+	HttpParams formBody;
+
+	/*
      $body = "client_id=$clientID&client_secret=$clientSecret&scope=$scopes&grant_type=authorization_code&code=$code&redirect_uri=$redirectUrl"
      #v2.0 token URL
      $tokenUrl = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
      
      $response = Invoke-RestMethod -Method Post -Uri $tokenUrl -Headers @{"Content-Type" = "application/x-www-form-urlencoded"} -Body $body
      */
-        
-    // Configure request for User OAuth 2.0 credential access to a service
-    url.Scheme = URI_SCHEME_HTTP_SECURE;
-    url.Host = F("login.microsoftonline.com");
-    url.Path = F("/common/oauth2/v2.0/token");
 
-    HttpRequest* request1 = new HttpRequest(url);
+	// Configure request for User OAuth 2.0 credential access to a service
+	url.Scheme = URI_SCHEME_HTTP_SECURE;
+	url.Host = F("login.microsoftonline.com");
+	url.Path = F("/common/oauth2/v2.0/token");
 
-    formBody[F("client_id")] = ActiveConfig.clientId;
-    formBody[F("client_secret")] = ActiveConfig.secret;
-    formBody[F("scope")] = F("offline_access openid profile calendars.read");
-    formBody[F("grant_type")] = isRefresh ? F("refresh_token") : F("authorization_code");
-    if(isRefresh) {
-        DynamicJsonDocument doc(CalendarJsonBufferSize);
-        
-        if(Json::loadFromFile(doc, filename_token)) {
-            formBody[F("refresh_token")] = doc[_F("refresh_token")].as<const char*>();
-        }
-    } else {
-        formBody[F("code")] = ActiveConfig.code;
-    }
-    formBody[F("redirect_uri")] = ({
-    	String s = F("https://");
-    	s += ActiveConfig.host;
-    	s += _F(".local/register");
-    	std::move(s);
-    });
+	HttpRequest* request1 = new HttpRequest(url);
 
-    Serial.println(url.toString());
-    Serial.print(formBody.toString().substring(1));
+	formBody[F("client_id")] = ActiveConfig.clientId;
+	formBody[F("client_secret")] = ActiveConfig.secret;
+	formBody[F("scope")] = F("offline_access openid profile calendars.read");
+	formBody[F("grant_type")] = isRefresh ? F("refresh_token") : F("authorization_code");
+	if(isRefresh) {
+		DynamicJsonDocument doc(CalendarJsonBufferSize);
 
-    request1->headers[HTTP_HEADER_CONTENT_TYPE] = F("application/x-www-form-urlencoded");
-    request1->onSslInit(onSslInit);
-    request1->setMethod(HTTP_POST);
-    String body = formBody.toString();
-    request1->setBody(reinterpret_cast<const uint8_t*>(&body[1]), body.length() - 1); // Omit leading '='
-    if(isRefresh) {
-        request1->onRequestComplete(getTokenRefreshComplete);
-    }
+		if(Json::loadFromFile(doc, filename_token)) {
+			formBody[F("refresh_token")] = doc[_F("refresh_token")].as<const char*>();
+		}
+	} else {
+		formBody[F("code")] = ActiveConfig.code;
+	}
+	formBody[F("redirect_uri")] = ({
+		String s = F("https://");
+		s += ActiveConfig.host;
+		s += _F(".local/register");
+		std::move(s);
+	});
 
-    // Send request using our httpClient, saves response locally
-    FileStream* fileStream = new FileStream;
-    assert(fileStream != nullptr);
-    if(fileStream->open( (isRefresh ? filename_update : filename_token)
-                                      , eFO_CreateNewAlways | eFO_ReadWrite)) {
-        request1->setResponseStream(fileStream); // saving response here
-        httpClient.send(request1);
-    }
+	Serial.println(url.toString());
+	Serial.print(formBody.toString().substring(1));
+
+	request1->headers[HTTP_HEADER_CONTENT_TYPE] = F("application/x-www-form-urlencoded");
+	request1->onSslInit(onSslInit);
+	request1->setMethod(HTTP_POST);
+	String body = formBody.toString();
+	request1->setBody(reinterpret_cast<const uint8_t*>(&body[1]), body.length() - 1); // Omit leading '='
+	if(isRefresh) {
+		request1->onRequestComplete(getTokenRefreshComplete);
+	}
+
+	// Send request using our httpClient, saves response locally
+	FileStream* fileStream = new FileStream;
+	assert(fileStream != nullptr);
+	if(fileStream->open((isRefresh ? filename_update : filename_token), eFO_CreateNewAlways | eFO_ReadWrite)) {
+		request1->setResponseStream(fileStream); // saving response here
+		httpClient.send(request1);
+	}
 }
 
-void Calendar::getCalendarIn(unsigned ms) {
-    procTimer.initializeMs( ms, Calendar::getCalendar).startOnce();
+void Calendar::getCalendarIn(unsigned ms)
+{
+	procTimer.initializeMs(ms, Calendar::getCalendar).startOnce();
 }
-void Calendar::getCalendar() {
-    DynamicJsonDocument doc(CalendarJsonBufferSize);
-    Url url;
-    auto now = SystemClock.now(eTZ_UTC);
-    DateTime dt_start(now);
-    DateTime dt_end(now + SECS_PER_DAY);
+void Calendar::getCalendar()
+{
+	DynamicJsonDocument doc(CalendarJsonBufferSize);
+	Url url;
+	auto now = SystemClock.now(eTZ_UTC);
+	DateTime dt_start(now);
+	DateTime dt_end(now + SECS_PER_DAY);
 
-    /*
+	/*
      
      GET https://graph.microsoft.com/v1.0/me/calendarview?startDateTime=2020-01-12T16%3a35%3a05Z&endDateTime=2020-01-13T16%3a35%3a05Z&$select=Subject,location,start&$orderby=start/dateTime&$top=2
      
@@ -351,40 +366,40 @@ void Calendar::getCalendar() {
      ]
      }
     */
-    
-    Serial.println(dt_start.toFullDateTimeString());
-    if(Json::loadFromFile(doc, filename_token)) {
-        Url url;
-        
-        // Configure request for User OAuth 2.0 credential access to a service
-        url.Scheme = URI_SCHEME_HTTP_SECURE;
-        url.Host = FS_hostService;
-        url.Path = F("/v1.0/me/calendarview");
-        
-        url.Query[F("startDateTime")] = dt_start.toISO8601();
-        url.Query[F("endDateTime")] = dt_end.toISO8601();
-        
-        url.Query[F("$select")] = F("Subject,location,start,end");
-        url.Query[F("$orderby")] = F("start/dateTime");
-        url.Query[F("$top")] = '2';
 
-        Serial.println(url.toString());
-        
-        HttpRequest* request1 = new HttpRequest(url);
-        request1->onSslInit(onSslInit);
-        request1->setMethod(HTTP_GET);
-        request1->headers[HTTP_HEADER_AUTHORIZATION] = doc[_F("access_token")].as<String>();
-        request1->onRequestComplete(callDisplayUpdate);
+	Serial.println(dt_start.toFullDateTimeString());
+	if(Json::loadFromFile(doc, filename_token)) {
+		Url url;
 
-        // Send request using our httpClient, saves response locally
-        FileStream* fileStream = new FileStream;
-        assert(fileStream != nullptr);
-        if(fileStream->open(lastQuery_json, eFO_CreateNewAlways | eFO_ReadWrite)) {
-            request1->setResponseStream(fileStream); // saving response here
-            httpClient.send(request1);
-            
-            vfdDisplay::clear();
-            vfdDisplay::show(F("Polled calendar . . ."));
-        }
-    }
+		// Configure request for User OAuth 2.0 credential access to a service
+		url.Scheme = URI_SCHEME_HTTP_SECURE;
+		url.Host = FS_hostService;
+		url.Path = F("/v1.0/me/calendarview");
+
+		url.Query[F("startDateTime")] = dt_start.toISO8601();
+		url.Query[F("endDateTime")] = dt_end.toISO8601();
+
+		url.Query[F("$select")] = F("Subject,location,start,end");
+		url.Query[F("$orderby")] = F("start/dateTime");
+		url.Query[F("$top")] = '2';
+
+		Serial.println(url.toString());
+
+		HttpRequest* request1 = new HttpRequest(url);
+		request1->onSslInit(onSslInit);
+		request1->setMethod(HTTP_GET);
+		request1->headers[HTTP_HEADER_AUTHORIZATION] = doc[_F("access_token")].as<String>();
+		request1->onRequestComplete(callDisplayUpdate);
+
+		// Send request using our httpClient, saves response locally
+		FileStream* fileStream = new FileStream;
+		assert(fileStream != nullptr);
+		if(fileStream->open(lastQuery_json, eFO_CreateNewAlways | eFO_ReadWrite)) {
+			request1->setResponseStream(fileStream); // saving response here
+			httpClient.send(request1);
+
+			vfdDisplay::clear();
+			vfdDisplay::show(F("Polled calendar . . ."));
+		}
+	}
 }

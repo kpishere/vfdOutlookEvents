@@ -3,14 +3,15 @@
 
 #include <SmingCore.h>
 
-class Calendar {
+class Calendar
+{
 public:
-    static void getCalendar();
-    static void getCalendarIn(unsigned ms);
+	static void getCalendar();
+	static void getCalendarIn(unsigned ms);
 
-    static void onCodeSave(HttpParams& parms);
-    static void getToken(boolean isRefresh = false);    
-    static void getAuthorization(String filename_login);
+	static void onCodeSave(HttpParams& parms);
+	static void getToken(boolean isRefresh = false);
+	static void getAuthorization(String filename_login);
 };
 
 #endif
