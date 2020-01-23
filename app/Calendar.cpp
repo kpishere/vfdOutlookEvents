@@ -298,7 +298,7 @@ void Calendar::getToken(boolean isRefresh) {
     }
 }
 
-void Calendar::getCalendarIn(int ms) {
+void Calendar::getCalendarIn(unsigned ms) {
     procTimer.initializeMs( ms, Calendar::getCalendar).startOnce();
 }
 void Calendar::getCalendar() {

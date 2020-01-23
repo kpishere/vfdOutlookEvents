@@ -6,7 +6,7 @@
 class Calendar {
 public:
     static void getCalendar();
-    static void getCalendarIn(int ms);
+    static void getCalendarIn(unsigned ms);
 
     static void onCodeSave(HttpParams& parms);
     static void getToken(boolean isRefresh = false);    

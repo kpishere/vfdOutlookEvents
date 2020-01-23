@@ -84,7 +84,7 @@ size_t myBodyToStringParser(HttpRequest& request, const char* at, int length)
 }
 
 // path = "/...."
-void sendRedirect(HttpResponse& response, String path, String secondsDelay = "15") {
+void sendRedirect(HttpResponse& response, String path, unsigned secondsDelay = 15) {
     // Redirect client browser to download file after it is saved locally
 	String respString = F("<head><meta http-equiv=\"Refresh\" content=\"");
 	respString += secondsDelay;
@@ -173,7 +173,7 @@ void onGetToken(HttpRequest& request, HttpResponse& response)
 void onCalRefresh(HttpRequest& request, HttpResponse& response)
 {
     Calendar::getCalendar();
-    sendRedirect(response, "/", "1");
+    sendRedirect(response, "/", 1);
 }
 
 //mDNS using ESP8266 SDK functions
