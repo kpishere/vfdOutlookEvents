@@ -117,27 +117,27 @@ void vfdDisplay::show(String val) {
 }
 
 void vfdDisplay::showNextEvent(int minsToEvent, String val) {
-    String indicator = "";
-    
-    Serial.printf("mins: %d\n",minsToEvent);
-    
+    Serial.print(F("mins: "));
+    Serial.println(minsToEvent);
+
     vfdDisplay::clear();
+    String indicator;
     if( minsToEvent > 60 * 8/*h*/ ) {
-        indicator = " ";
+        indicator = ' ';
     } else {
         if( minsToEvent > 30 ) {
-            indicator = "\x0B\x7F\x0C"; // [*]
+            indicator = F("\x0B\x7F\x0C"); // [*]
         } else {
             if( minsToEvent > 15 ) {
-                indicator = "\x23"; // ==
+                indicator = '\x23'; // ==
             } else {
                 if( minsToEvent > 10 ) {
-                    indicator = "\x3A"; // =
+                    indicator = '\x3A'; // =
                 } else {
                     if( minsToEvent > 5 ) {
-                        indicator = "\x5F"; // _
+                        indicator = '\x5F'; // _
                     } else {
-                        indicator = "\x0B\x2A\x0C"; // *
+                        indicator = F("\x0B\x2A\x0C"); // *
                     }
                 }
             }

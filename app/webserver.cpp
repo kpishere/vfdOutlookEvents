@@ -85,13 +85,16 @@ size_t myBodyToStringParser(HttpRequest& request, const char* at, int length)
 
 // path = "/...."
 void sendRedirect(HttpResponse& response, String path, String secondsDelay = "15") {
-    String respString;
-    
     // Redirect client browser to download file after it is saved locally
-    respString = String(_F("<head><meta http-equiv=\"Refresh\" content=\"") + secondsDelay + _F("; URL="))
-    + String(_F("http://")+(WifiStation.isConnected() ? WifiStation.getIP() : WifiAccessPoint.getIP()).toString()+":"
-             + String(serverPort) + path)
-    + String(_F("\"/></head>"));
+	String respString = F("<head><meta http-equiv=\"Refresh\" content=\"");
+	respString += secondsDelay;
+	respString += _F("; URL=");
+	respString += _F("http://");
+	respString += (WifiStation.isConnected() ? WifiStation.getIP() : WifiAccessPoint.getIP()).toString();
+	respString += ':';
+	respString += serverPort;
+	respString += path;
+	respString += _F("\"/></head>");
     
     response.setCache(0,true);
     response.sendString(respString);
@@ -148,7 +151,7 @@ void onAuthorize(HttpRequest& request, HttpResponse& response)
 
     Calendar::getAuthorization(filename_login);
     
-    sendRedirect(response, String("/")+filename_login);
+    sendRedirect(response, String('/') + filename_login);
 }
 
 /*
@@ -188,8 +191,8 @@ void startmDNS()
 void startWebServer()
 {    
     System.setCpuFrequency(eCF_160MHz);
-    Serial.print("New CPU frequency is:");
-    Serial.println((int)System.getCpuFrequency());
+    Serial.print(F("New CPU frequency is: "));
+    Serial.println(System.getCpuFrequency());
     /*
      #include "ssl/server_cert.h"
      #include "ssl/server_private_key.h"

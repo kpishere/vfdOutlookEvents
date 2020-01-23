@@ -40,26 +40,26 @@ void listNetworks(bool succeeded, BssList& list)
 void handleCommand(const String& command)
 {
     if(command.startsWith(ssidCmd)) {
-        ActiveConfig.ssid = String(command.substring(ssidCmd.length()));
+        ActiveConfig.ssid = command.substring(ssidCmd.length());
         saveConfig(ActiveConfig);
     } else if(command.startsWith(pwdCmd)) {
-        ActiveConfig.pwd = String(command.substring(pwdCmd.length()));
+        ActiveConfig.pwd = command.substring(pwdCmd.length());
         saveConfig(ActiveConfig);
     } else if(command.startsWith(secretCmd)) {
-        ActiveConfig.secret = String(command.substring(secretCmd.length()));
+        ActiveConfig.secret = command.substring(secretCmd.length());
         saveConfig(ActiveConfig);
     } else if(command.startsWith(hostCmd)) {
-        ActiveConfig.host = String(command.substring(hostCmd.length()));
+        ActiveConfig.host = command.substring(hostCmd.length());
         saveConfig(ActiveConfig);
     } else if(command.startsWith(codeCmd)) {
-        ActiveConfig.code = String(command.substring(codeCmd.length()));
+        ActiveConfig.code = command.substring(codeCmd.length());
         saveConfig(ActiveConfig);
     } else if(command.startsWith(listCmd)) {
         WifiStation.startScan(listNetworks);
     } else if(command.startsWith(restartCmd)) {
         System.restart();
     } else {
-        Serial.print("Free size (handleCommand): ");
+        Serial.print(_F("Free size (handleCommand): "));
         Serial.println(system_get_free_heap_size());
 
         Serial.printf(_F("Commands are 'ssid <ssid>', 'pwd <pwd>', 'secret <secret>', 'host <host>', 'code <code>', 'list', 'restart'\r\n"), command.c_str());
@@ -76,7 +76,7 @@ void gotIP(IpAddress ip, IpAddress netmask, IpAddress gateway)
     if(ntp != NULL) delete ntp;
     ntp = new NtpClient(_F("pool.ntp.org"), 300);
     
-    vfdDisplay::show(String(_F("Hostname ")) + ActiveConfig.host);
+    vfdDisplay::show(F("Hostname ") + ActiveConfig.host);
 }
 
 // Will be called when WiFi station was disconnected
@@ -107,7 +107,7 @@ void init()
 
     vfdDisplay::init();
     vfdDisplay::clear();
-    vfdDisplay::show("Wifi . . .");
+    vfdDisplay::show(F("Wifi . . ."));
 
     ActiveConfig = loadConfig();
     
