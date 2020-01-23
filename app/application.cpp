@@ -6,13 +6,13 @@
 
 #define DEVICE_TIMEZONE (-5.0)
 
-DEFINE_FSTR(ssidCmd,"ssid ");
-DEFINE_FSTR(pwdCmd,"pwd ");
-DEFINE_FSTR(secretCmd,"secret ");
-DEFINE_FSTR(hostCmd,"host ");
-DEFINE_FSTR(codeCmd,"code ");
-DEFINE_FSTR(listCmd,"list");
-DEFINE_FSTR(restartCmd,"restart");
+DEFINE_FSTR_LOCAL(ssidCmd,"ssid ");
+DEFINE_FSTR_LOCAL(pwdCmd,"pwd ");
+DEFINE_FSTR_LOCAL(secretCmd,"secret ");
+DEFINE_FSTR_LOCAL(hostCmd,"host ");
+DEFINE_FSTR_LOCAL(codeCmd,"code ");
+DEFINE_FSTR_LOCAL(listCmd,"list");
+DEFINE_FSTR_LOCAL(restartCmd,"restart");
 
 SerialReadLine serialReadline;
 NtpClient *ntp;

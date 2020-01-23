@@ -7,21 +7,21 @@ const uint16_t ConfigJsonBufferSize = 255;
 
 int serverPort = 80;
 
-DEFINE_FSTR(filename_login,"login.html");
-DEFINE_FSTR(config_tennentName,"tennentid");
-DEFINE_FSTR(config_clientIdName,"client_id");
+DEFINE_FSTR_LOCAL(filename_login,"login.html");
+DEFINE_FSTR_LOCAL(config_tennentName,"tennentid");
+DEFINE_FSTR_LOCAL(config_clientIdName,"client_id");
 
-DEFINE_FSTR(path_config,"/config");
-DEFINE_FSTR(path_authorize,"/authorize");
-DEFINE_FSTR(path_register,"/register");
-DEFINE_FSTR(path_newToken,"/newToken");
-DEFINE_FSTR(path_refresh,"/refresh");
+DEFINE_FSTR_LOCAL(path_config,"/config");
+DEFINE_FSTR_LOCAL(path_authorize,"/authorize");
+DEFINE_FSTR_LOCAL(path_register,"/register");
+DEFINE_FSTR_LOCAL(path_newToken,"/newToken");
+DEFINE_FSTR_LOCAL(path_refresh,"/refresh");
 
-DEFINE_FSTR(flash_fnameJQuery, "jquery-2.1.4.min.js");
-DEFINE_FSTR(flash_fnameBootStrap, "bootstrap.min.css");
+DEFINE_FSTR_LOCAL(flash_fnameJQuery, "jquery-2.1.4.min.js");
+DEFINE_FSTR_LOCAL(flash_fnameBootStrap, "bootstrap.min.css");
 
-IMPORT_FSTR(flash_jqueryjsgz,  PROJECT_DIR  "/web/jquery-2.1.4.min.js.gz")
-IMPORT_FSTR(flash_bootstrapcssgz,  PROJECT_DIR  "/web/bootstrap.min.css.gz")
+IMPORT_FSTR_LOCAL(flash_jqueryjsgz,  PROJECT_DIR  "/web/jquery-2.1.4.min.js.gz")
+IMPORT_FSTR_LOCAL(flash_bootstrapcssgz,  PROJECT_DIR  "/web/bootstrap.min.css.gz")
 
 
 HttpServer server;

@@ -16,10 +16,10 @@ Timer deadTimer;
 
 HttpClient httpClient;
 
-DEFINE_FSTR(filename_token,"token.json");
-DEFINE_FSTR(filename_update,"update.json");
-DEFINE_FSTR(lastQuery_json,"query.json");
-DEFINE_FSTR(code_token,"code");
+DEFINE_FSTR_LOCAL(filename_token,"token.json");
+DEFINE_FSTR_LOCAL(filename_update,"update.json");
+DEFINE_FSTR_LOCAL(lastQuery_json,"query.json");
+DEFINE_FSTR_LOCAL(code_token,"code");
 
 /*
  * Configure SSL features and trust

@@ -3,18 +3,18 @@
 
 const uint16_t ConfigJsonBufferSize = 2048;
 
-DEFINE_FSTR(configFileName,".config.conf");  // leading period for files un-downloadable by webserver
-DEFINE_FSTR(networkName,"network");
-DEFINE_FSTR(ssidName,"StaSSID");
-DEFINE_FSTR(pwdName,"StaPassword");
-DEFINE_FSTR(hostName,"HostName");
-
-DEFINE_FSTR(tennentName,"tennentid");
-DEFINE_FSTR(clientIdName,"clientid");
-DEFINE_FSTR(codeName,"code");
-DEFINE_FSTR(clientSecretName,"secret");
 
 const char endOfLine = '\n';
+DEFINE_FSTR_LOCAL(configFileName,".config.conf");  // leading period for files un-downloadable by webserver
+DEFINE_FSTR_LOCAL(networkName,"network");
+DEFINE_FSTR_LOCAL(ssidName,"StaSSID");
+DEFINE_FSTR_LOCAL(pwdName,"StaPassword");
+DEFINE_FSTR_LOCAL(hostName,"HostName");
+
+DEFINE_FSTR_LOCAL(tennentName,"tennentid");
+DEFINE_FSTR_LOCAL(clientIdName,"clientid");
+DEFINE_FSTR_LOCAL(codeName,"code");
+DEFINE_FSTR_LOCAL(clientSecretName,"secret");
 
 Configuration ActiveConfig;
 
