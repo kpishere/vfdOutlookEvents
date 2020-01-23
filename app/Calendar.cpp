@@ -151,8 +151,9 @@ void displayUpdate()
             Serial.print(dt_start.toISO8601());
             Serial.print(_F(" end "));
             Serial.println(dt_end.toISO8601());
-            if(dt_end.toUnixTime() - SystemClock.now(eTZ_UTC) > 0) {
-                vfdDisplay::showNextEvent( (dt_start.toUnixTime() - SystemClock.now(eTZ_UTC)) / 60 , location[_F("displayName")] );
+            auto now = SystemClock.now(eTZ_UTC);
+            if(dt_end.toUnixTime() > now) {
+                vfdDisplay::showNextEvent( (dt_start.toUnixTime() - now) / SECS_PER_MIN , location[_F("displayName")] );
             } else {
                 vfdDisplay::clear();
             }
@@ -303,7 +304,9 @@ void Calendar::getCalendarIn(int ms) {
 void Calendar::getCalendar() {
     DynamicJsonDocument doc(CalendarJsonBufferSize);
     Url url;
-    DateTime dt_start(SystemClock.now(eTZ_UTC)), dt_end(SystemClock.now(eTZ_UTC) + 60*60*24);
+    auto now = SystemClock.now(eTZ_UTC);
+    DateTime dt_start(now);
+    DateTime dt_end(now + SECS_PER_DAY);
 
     /*
      
