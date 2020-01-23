@@ -371,7 +371,7 @@ void Calendar::getCalendar() {
         HttpRequest* request1 = new HttpRequest(url);
         request1->onSslInit(onSslInit);
         request1->setMethod(HTTP_GET);
-        request1->setHeader("Authorization", doc["access_token"] );
+        request1->headers[HTTP_HEADER_AUTHORIZATION] = doc[_F("access_token")].as<String>();
         request1->onRequestComplete(callDisplayUpdate);
 
         // Send request using our httpClient, saves response locally

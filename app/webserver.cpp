@@ -121,7 +121,7 @@ void onFile(HttpRequest& request, HttpResponse& response)
         response.sendDataStream(stream, MIME_CSS);
     } else if(file.compareTo(filename_login)==0) { // This is for re-attempts at login
         response.setCache(86400, true); // It's important to use cache for better performance.
-        response.setHeader(_F("Access-Control-Allow-Origin"),_F("*"));
+        response.headers[HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN] = "*";
         response.sendFile(file);
     } else {
         response.setCache(86400, true); // It's important to use cache for better performance.
