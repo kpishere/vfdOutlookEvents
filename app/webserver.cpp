@@ -49,27 +49,28 @@ size_t myBodyToStringParser(HttpRequest& request, const char* at, int length)
             if(request.getBody() == nullptr) {
                 debugf("NULL bodyBuf");
                 return 0;
-            } else {
-                ActiveConfig = loadConfig();
-                DynamicJsonDocument root(ConfigJsonBufferSize);
-                
-                if(!Json::deserialize(root, request.getBodyStream())) {
-                    debug_w("Invalid JSON to un-serialize");
-                    return 0;
-                }
-                debugf("Form values: ");
-                Json::serialize(root, Serial, Json::Pretty); // For debugging
-
-                if(root.containsKey(config_tennentName)) // Settings
-                {
-                    ActiveConfig.tennentId = String((const char*)root[config_tennentName]);
-                }
-                if(root.containsKey(config_clientIdName)) // Settings
-                {
-                    ActiveConfig.clientId = String((const char*)root[config_clientIdName]);
-                }
-                saveConfig(ActiveConfig);
             }
+
+			ActiveConfig = loadConfig();
+			DynamicJsonDocument root(ConfigJsonBufferSize);
+
+			if(!Json::deserialize(root, request.getBodyStream())) {
+				debug_w("Invalid JSON to un-serialize");
+				return 0;
+			}
+
+			debugf("Form values: ");
+			Json::serialize(root, Serial, Json::Pretty); // For debugging
+
+			if(root.containsKey(config_tennentName)) // Settings
+			{
+				ActiveConfig.tennentId = root[config_tennentName].as<const char*>();
+			}
+			if(root.containsKey(config_clientIdName)) // Settings
+			{
+				ActiveConfig.clientId = root[config_clientIdName].as<const char*>();
+			}
+			saveConfig(ActiveConfig);
         }
         delete data;
         request.args = nullptr;
