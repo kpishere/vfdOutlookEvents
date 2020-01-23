@@ -67,7 +67,7 @@ HardwareSerial Serial1(UART_ID_1);
 
 void vfdDisplay::init() {
     // Initialise and prepare the second serial port for display
-    Serial1.begin(19200,(SerialConfig)UART_8N2);
+    Serial1.begin(19200, SERIAL_8N2);
     Serial1.systemDebugOutput(false);
     Serial1.setTxBufferSize(128);
     Serial1.setRxBufferSize(0);
