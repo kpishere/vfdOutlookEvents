@@ -74,7 +74,7 @@ void gotIP(IpAddress ip, IpAddress netmask, IpAddress gateway)
     startWebServer();
     startmDNS();
     if(ntp != NULL) delete ntp;
-    ntp = new NtpClient(_F("pool.ntp.org"), 300);
+    ntp = new NtpClient(nullptr, 300);
     
     vfdDisplay::show(F("Hostname ") + ActiveConfig.host);
 }
