@@ -67,31 +67,30 @@ void onSslInit(Ssl::Session& session, HttpRequest& request) {
 
 // 2020-01-13T14:20:00.0000000 or 2020-01-13T14:20:00Z or 2020-01-13
 DateTime parseISO8602(String datetime) {
+	// Null-terminate all the numeric content elements
+    for(auto& c: datetime) {
+        if(c == '-' || c == 'T' || c == ':' || c == '.' || c == 'Z') {
+            c = '\0';
+        }
+    }
+
     DateTime tm;
-    short loc[] = {0, 5, 8, 11, 14, 17};
-    char buffer[20];
-    int v, yr = 1970, mnth = 01, d = 01, h = 0, m = 0, s = 0, len;
-    len = datetime.length();
-    len = (len<20?len:20);
-    
-    memcpy(buffer, datetime.c_str(), len);
-    for(int i=0; i<len; i++) {
-        if(buffer[i] == '-' || buffer[i] == 'T' || buffer[i] == ':' || buffer[i] == '.' || buffer[i] == 'Z') {
-            buffer[i] = 0;
-        }
+    if(datetime.length() >= 10) {
+    	tm.Year = atoi(&datetime[0]);
+    	tm.Month = atoi(&datetime[5]);
+    	tm.Day = atoi(&datetime[8]);
+
+		if(datetime.length() >= 19) {
+			tm.Hour = atoi(&datetime[11]);
+			tm.Minute = atoi(&datetime[14]);
+			tm.Second = atoi(&datetime[17]);
+		}
+    } else {
+        tm.Year = 1970;
+        tm.Month = 1;
+        tm.Day = 1;
     }
-    for(short i=0; i<((len>9) * 3 + (len>18) * 3)  ; i++) {
-        v = String(&buffer[loc[i]]).toInt();
-        switch(i) {
-            case 0: yr = v; break;
-            case 1: mnth = v-1; break;
-            case 2: d = v; break;
-            case 3: h = v; break;
-            case 4: m = v; break;
-            case 5: s = v; break;
-        }
-    }
-    tm.setTime(s, m, h, d, mnth, yr);
+
     return tm;
 }
 void getTokenRefresh() {
