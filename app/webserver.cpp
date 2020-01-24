@@ -3,9 +3,13 @@
 #include "Calendar.h"
 #include "webserver.h"
 
+#include <Network/Mdns.h>
+
+static mDNS::Responder mdns;
+
 const uint16_t ConfigJsonBufferSize = 255;
 
-int serverPort = 80;
+constexpr uint16_t serverPort = 80;
 
 DEFINE_FSTR_LOCAL(filename_login, "login.html");
 DEFINE_FSTR_LOCAL(config_tennentName, "tennentid");
@@ -177,15 +181,12 @@ void onCalRefresh(HttpRequest& request, HttpResponse& response)
 //mDNS using ESP8266 SDK functions
 void startmDNS()
 {
-#ifdef ENABLE_ESPCONN
-	struct mdns_info* info = (struct mdns_info*)malloc(sizeof(struct mdns_info));
-	info->host_name = (char*)ActiveConfig.host.c_str();
-	info->ipAddr = WifiStation.getIP();
-	info->server_name = info->host_name;
-	info->server_port = serverPort;
-	info->txt_data[0] = (char*)"";
-	//espconn_mdns_init(info);
-#endif
+	auto getText = [](const mDNS::Service& svc) { return "version=now"; };
+
+	if(mdns.init(ActiveConfig.host, getText)) {
+		mdns.addService(mDNS::Service{"Sming", "_http", mDNS::Service::Protocol::Tcp, serverPort});
+		mdns.begin();
+	}
 }
 
 void startWebServer()
