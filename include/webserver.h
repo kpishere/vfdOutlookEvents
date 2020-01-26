@@ -7,5 +7,3 @@ void startWebServer();
 void startmDNS();
 
 #endif /*INCLUDE_WEBSERVER_H_*/
-
-

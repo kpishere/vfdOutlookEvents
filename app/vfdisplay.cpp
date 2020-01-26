@@ -65,85 +65,90 @@
  */
 HardwareSerial Serial1(UART_ID_1);
 
-void vfdDisplay::init() {
-    // Initialise and prepare the second serial port for display
-    Serial1.begin(19200,(SerialConfig)UART_8N2);
-    Serial1.systemDebugOutput(false);
-    Serial1.setTxBufferSize(128);
-    Serial1.setRxBufferSize(0);
-    Serial1.setTxWait(false);
-    delay(200);
+void vfdDisplay::init()
+{
+	// Initialise and prepare the second serial port for display
+	Serial1.begin(19200, SERIAL_8N2);
+	Serial1.systemDebugOutput(false);
+	Serial1.setTxBufferSize(128);
+	Serial1.setRxBufferSize(0);
+	Serial1.setTxWait(false);
+	delay(200);
 }
 
-void vfdDisplay::clear() {
-    Serial1.print((char)0x15); // Clear and reset display
-    Serial1.print((char)0x0E); // disable curser flash
+void vfdDisplay::clear()
+{
+	Serial1.print('\x15'); // Clear and reset display
+	Serial1.print('\x0E'); // disable curser flash
 }
 
-void vfdDisplay::show(String val) {
-    String vfdStr(""), vfdStrAlt("");
-    char cv;
-    val.toUpperCase(); // Lower case don't print with punctuation (and look like upper case)
-    for(char& c : val) {
-        // Directly printable characters only
-        if((0x20 <= c && c <= 0x60)
-           || 0x7B <= c && c <= 0x7E
-           ) {
-            vfdStr += c;
-        }
-    }
-    
-    // TODO: Parse HTML here for character control codes supported
-    if(vfdStr.length() <= 1) return;
-    
-    // Search and replace supported tokins
-    for(int i = 1; i < vfdStr.length(); i++) {
-        cv = vfdStr[i-1];
-        switch ( vfdStr[i] ) {
-            case ',':
-                if(0x20 <= cv && cv <= 0x3F)        cv += 0x60;
-                else if(0x40 <= cv && cv <= 0x5F)   cv += 0xA0;
-                break;
-            case '.':
-                if(0x20 <= cv && cv <= 0x5F)        cv += 0x80;
-                break;
-        }
-        vfdStr[i-1] = cv;
-    }
-    vfdStr.replace(",","");
-    vfdStr.replace(".","");
-    
-    Serial1.print(vfdStr);
+void vfdDisplay::show(String val)
+{
+	val.toUpperCase(); // Lower case don't print with punctuation (and look like upper case)
+	String vfdStr;
+	for(char c : val) {
+		// Directly printable characters only
+		if(('\x20' <= c && c <= '\x60') || '\x7B' <= c && c <= '\x7E') {
+			vfdStr += c;
+		}
+	}
+
+	// TODO: Parse HTML here for character control codes supported
+	if(vfdStr.length() <= 1)
+		return;
+
+	// Search and replace supported tokens
+	for(int i = 1; i < vfdStr.length(); i++) {
+		char cv = vfdStr[i - 1];
+		switch(vfdStr[i]) {
+		case ',':
+			if('\x20' <= cv && cv <= '\x3F')
+				cv += 0x60;
+			else if('\x40' <= cv && cv <= '\x5F')
+				cv += 0xA0;
+			break;
+		case '.':
+			if('\x20' <= cv && cv <= '\x5F')
+				cv += 0x80;
+			break;
+		}
+		vfdStr[i - 1] = cv;
+	}
+	vfdStr.replace(",", "");
+	vfdStr.replace(".", "");
+
+	Serial1.print(vfdStr);
 }
 
-void vfdDisplay::showNextEvent(int minsToEvent, String val) {
-    String indicator = "";
-    
-    Serial.printf("mins: %d\n",minsToEvent);
-    
-    vfdDisplay::clear();
-    if( minsToEvent > 60 * 8/*h*/ ) {
-        indicator = " ";
-    } else {
-        if( minsToEvent > 30 ) {
-            indicator = "\x0B\x7F\x0C"; // [*]
-        } else {
-            if( minsToEvent > 15 ) {
-                indicator = "\x23"; // ==
-            } else {
-                if( minsToEvent > 10 ) {
-                    indicator = "\x3A"; // =
-                } else {
-                    if( minsToEvent > 5 ) {
-                        indicator = "\x5F"; // _
-                    } else {
-                        indicator = "\x0B\x2A\x0C"; // *
-                    }
-                }
-            }
-        }
-    }
-    vfdDisplay::clear();
-    Serial1.print( indicator );
-    vfdDisplay::show( val );
+void vfdDisplay::showNextEvent(int minsToEvent, String val)
+{
+	Serial.print(F("mins: "));
+	Serial.println(minsToEvent);
+
+	vfdDisplay::clear();
+	String indicator;
+	if(minsToEvent > 60 * 8 /*h*/) {
+		indicator = ' ';
+	} else {
+		if(minsToEvent > 30) {
+			indicator = F("\x0B\x7F\x0C"); // [*]
+		} else {
+			if(minsToEvent > 15) {
+				indicator = '\x23'; // ==
+			} else {
+				if(minsToEvent > 10) {
+					indicator = '\x3A'; // =
+				} else {
+					if(minsToEvent > 5) {
+						indicator = '\x5F'; // _
+					} else {
+						indicator = F("\x0B\x2A\x0C"); // *
+					}
+				}
+			}
+		}
+	}
+	vfdDisplay::clear();
+	Serial1.print(indicator);
+	vfdDisplay::show(val);
 }
