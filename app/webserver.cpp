@@ -3,9 +3,10 @@
 #include "Calendar.h"
 #include "webserver.h"
 
-#include <Network/Mdns.h>
+//#include <Mdns/Responder.h>
+//#include <Network/Mdns.h>
 
-static mDNS::Responder mdns;
+//static mDNS::Responder mdns;
 
 const uint16_t ConfigJsonBufferSize = 255;
 
@@ -181,12 +182,25 @@ void onCalRefresh(HttpRequest& request, HttpResponse& response)
 //mDNS using ESP8266 SDK functions
 void startmDNS()
 {
+    /* // Too much memory used with ENABLE_ESPCONN=1, mut must be =0 and therefore
+     // can't use espconn_mdns_init()
+    struct mdns_info* info = (struct mdns_info*)malloc(sizeof(struct mdns_info));
+    info->host_name = (char *)ActiveConfig.host.c_str();
+    info->ipAddr = WifiStation.getIP();
+    info->server_name = info->host_name;
+    info->server_port = serverPort;
+    info->txt_data[0] = (char *)"";
+    espconn_mdns_init(info);
+     */
+    /*
+     // This only works in emulation environment, not on actual device
 	auto getText = [](const mDNS::Service& svc) { return "version=now"; };
 
-	if(mdns.init(ActiveConfig.host, getText)) {
+    if(mdns.init(ActiveConfig.host, getText)) {
 		mdns.addService(mDNS::Service{"Sming", "_http", mDNS::Service::Protocol::Tcp, serverPort});
 		mdns.begin();
 	}
+     */
 }
 
 void startWebServer()
