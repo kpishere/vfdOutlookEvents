@@ -81,7 +81,7 @@ DateTime parseISO8602(String datetime)
 	DateTime tm;
 	if(datetime.length() >= 10) {
 		tm.Year = atoi(&datetime[0]);
-		tm.Month = atoi(&datetime[5]);
+		tm.Month = atoi(&datetime[5]) - 1;
 		tm.Day = atoi(&datetime[8]);
 
 		if(datetime.length() >= 19) {
@@ -91,7 +91,7 @@ DateTime parseISO8602(String datetime)
 		}
 	} else {
 		tm.Year = 1970;
-		tm.Month = 1;
+		tm.Month = 0;
 		tm.Day = 1;
 	}
 

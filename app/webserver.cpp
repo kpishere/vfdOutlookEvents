@@ -3,10 +3,11 @@
 #include "Calendar.h"
 #include "webserver.h"
 
-//#include <Mdns/Responder.h>
-//#include <Network/Mdns.h>
+/*
+ #include <Network/Mdns.h>
 
-//static mDNS::Responder mdns;
+static mDNS::Responder mdns;
+*/
 
 const uint16_t ConfigJsonBufferSize = 255;
 
@@ -193,13 +194,7 @@ void startmDNS()
     espconn_mdns_init(info);
      */
     /*
-     // This only works in emulation environment, not on actual device
-	auto getText = [](const mDNS::Service& svc) { return "version=now"; };
-
-    if(mdns.init(ActiveConfig.host, getText)) {
-		mdns.addService(mDNS::Service{"Sming", "_http", mDNS::Service::Protocol::Tcp, serverPort});
-		mdns.begin();
-	}
+     mdns.init(ActiveConfig.host);
      */
 }
 
