@@ -96,7 +96,7 @@ void connectFail(const String& ssid, MacAddress bssid, WifiDisconnectReason reas
 	Serial.print(_F("\", reason: "));
 	Serial.println(WifiEvents.getDisconnectReasonDesc(reason));
 
-	System.restart(500);
+	System.restart(30000);
 }
 
 void init()
