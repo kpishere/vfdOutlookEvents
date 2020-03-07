@@ -1,4 +1,4 @@
-COM_PORT_ESPTOOL=/dev/cu.wchusbserial1420
+COM_PORT_ESPTOOL=/dev/cu.wchusbserial1410
 SMING_ARCH=Esp8266
 SPI_SIZE=4M
 SPI_MODE=dio

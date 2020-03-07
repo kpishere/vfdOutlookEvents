@@ -10,7 +10,7 @@ public:
 	static void clear();
 	static void show(String val);
 
-	static void showNextEvent(int minsToEvent, String val);
+    static void showNextEvent(time_t timeNow, time_t timeEvent, String val);
 };
 
 #endif /*INCLUDE_VFDISPLAY_H_*/

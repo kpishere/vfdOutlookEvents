@@ -120,8 +120,10 @@ void vfdDisplay::show(String val)
 	Serial1.print(vfdStr);
 }
 
-void vfdDisplay::showNextEvent(int minsToEvent, String val)
+void vfdDisplay::showNextEvent(time_t timeNow, time_t timeEvent, String val)
 {
+    bool inFuture = (timeEvent > timeNow);
+    int minsToEvent = (inFuture ? timeEvent - timeNow : -1 * (timeNow - timeEvent)) / SECS_PER_MIN;
 	Serial.print(F("mins: "));
 	Serial.println(minsToEvent);
 

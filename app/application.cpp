@@ -1,4 +1,5 @@
 #include <SmingCore.h>
+#include "Data/Stream/FileStream.h"
 #include "SerialReadLine.h"
 #include "Configuration.h"
 #include "webserver.h"
@@ -12,6 +13,8 @@ DEFINE_FSTR_LOCAL(secretCmd, "secret ");
 DEFINE_FSTR_LOCAL(hostCmd, "host ");
 DEFINE_FSTR_LOCAL(codeCmd, "code ");
 DEFINE_FSTR_LOCAL(listCmd, "list");
+DEFINE_FSTR_LOCAL(dirCmd, "dir");
+DEFINE_FSTR_LOCAL(dirCat, "cat");
 DEFINE_FSTR_LOCAL(restartCmd, "restart");
 
 SerialReadLine serialReadline;
@@ -36,7 +39,26 @@ void listNetworks(bool succeeded, BssList& list)
 		Serial.println();
 	}
 }
-
+void listFiles() {
+    Vector<String> fList = fileList();
+    Serial.println("\r\nFiles:");
+    for (unsigned i = 0; i < fList.size(); i++) {
+        Serial.println(fList[i]);
+    }
+}
+void printFile(const String& fname) {
+    FileStream *fileStream = new FileStream();
+    char b[1024];
+    int readBytes = 0;
+    if(fileStream->open(fname)) {
+        readBytes = fileStream->readMemoryBlock((char *)b,1024);
+        Serial.write((char *)b,readBytes);
+        Serial.println("<eof>");
+    } else {
+        Serial.println("file not found.");
+    }
+    delete fileStream;
+}
 void handleCommand(const String& command)
 {
 	if(command.startsWith(ssidCmd)) {
@@ -56,7 +78,12 @@ void handleCommand(const String& command)
 		saveConfig(ActiveConfig);
 	} else if(command.startsWith(listCmd)) {
 		WifiStation.startScan(listNetworks);
-	} else if(command.startsWith(restartCmd)) {
+    } else if(command.startsWith(dirCmd)) {
+        listFiles();
+    } else if(command.startsWith(dirCat)) {
+        String fname = command.substring(dirCat.size());
+        printFile(fname);
+    } else if(command.startsWith(restartCmd)) {
 		System.restart();
 	} else {
 		Serial.print(_F("Free size (handleCommand): "));
@@ -69,6 +96,8 @@ void handleCommand(const String& command)
 						  "host <host>\r\n"
 						  "code <code>\r\n"
 						  "list\r\n"
+                          "dir\r\n"
+                          "cat\r\n"
 						  "restart"));
 	}
 }
@@ -98,12 +127,32 @@ void connectFail(const String& ssid, MacAddress bssid, WifiDisconnectReason reas
 
 	System.restart(30000);
 }
+void startWiFi() {
+    // Configure wifi
+    WifiStation.enable(true);
+    WifiStation.config(ActiveConfig.ssid, ActiveConfig.pwd);
+    WifiAccessPoint.enable(false);
+    
+    // Run our method when station was connected to AP
+    WifiEvents.onStationGotIP(gotIP);
+    
+    // Optional: Print details of any incoming probe requests
+    WifiEvents.onAccessPointProbeReqRecved([](int rssi, MacAddress mac) {
+        Serial.print(_F("Probe request: RSSI = "));
+        Serial.print(rssi);
+        Serial.print(_F(", mac = "));
+        Serial.println(mac);
+    });
+    
+    // Set callback that should be triggered if we are disconnected or connection attempt failed
+    WifiEvents.onStationDisconnect(connectFail);
+}
 
 void init()
 {
 	ntp = NULL;
 	// Command and debug serial port
-	Serial.setTxBufferSize(128);
+	Serial.setTxBufferSize(1024);
 	Serial.setRxBufferSize(1024);
 	Serial.setTxWait(false);
 	Serial.begin(SERIAL_BAUD_RATE); // 115200 by default
@@ -122,23 +171,6 @@ void init()
 
 	serialReadline.begin(Serial);
 	serialReadline.onCommand(handleCommand);
-
-	// Configure wifi
-	WifiStation.enable(true);
-	WifiStation.config(ActiveConfig.ssid, ActiveConfig.pwd);
-	WifiAccessPoint.enable(false);
-
-	// Run our method when station was connected to AP
-	WifiEvents.onStationGotIP(gotIP);
-
-	// Optional: Print details of any incoming probe requests
-	WifiEvents.onAccessPointProbeReqRecved([](int rssi, MacAddress mac) {
-		Serial.print(_F("Probe request: RSSI = "));
-		Serial.print(rssi);
-		Serial.print(_F(", mac = "));
-		Serial.println(mac);
-	});
-
-	// Set callback that should be triggered if we are disconnected or connection attempt failed
-	WifiEvents.onStationDisconnect(connectFail);
+    
+    startWiFi();
 }

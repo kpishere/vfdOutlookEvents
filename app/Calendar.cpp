@@ -162,9 +162,9 @@ void displayUpdate()
 			Serial.print(dt_start.toISO8601());
 			Serial.print(_F(" end "));
 			Serial.println(dt_end.toISO8601());
-			auto now = SystemClock.now(eTZ_UTC);
+			int now = SystemClock.now(eTZ_UTC);
 			if(dt_end.toUnixTime() > now) {
-				vfdDisplay::showNextEvent((dt_start.toUnixTime() - now) / SECS_PER_MIN, location[_F("displayName")]);
+				vfdDisplay::showNextEvent(now, dt_start.toUnixTime(), location[_F("displayName")]);
 			} else {
 				vfdDisplay::clear();
 			}
